@@ -58,60 +58,174 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ];
 
+  void _addTask(Task task) {
+    setState(() {
+      tasks.add(task);
+    });
+  }
+
+  void _showAddTaskDialog() {
+    final titleController = TextEditingController();
+    DateTime startDate = DateTime.now();
+    DateTime endDate = DateTime.now().add(const Duration(days: 1));
+    TaskStatus status = TaskStatus.todo;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: const Text("Add New Task"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: "Task Title",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  title: const Text("Start Date"),
+                  subtitle: Text(DateFormat('MMM d, y').format(startDate)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: startDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      setDialogState(() => startDate = picked);
+                    }
+                  },
+                ),
+                ListTile(
+                  title: const Text("End Date"),
+                  subtitle: Text(DateFormat('MMM d, y').format(endDate)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: endDate,
+                      firstDate: startDate,
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      setDialogState(() => endDate = picked);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<TaskStatus>(
+                  value: status,
+                  decoration: const InputDecoration(
+                    labelText: "Status",
+                    border: OutlineInputBorder(),
+                  ),
+                  items: TaskStatus.values.map((s) {
+                    return DropdownMenuItem(
+                      value: s,
+                      child: Text(s.toString().split('.').last.toUpperCase()),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setDialogState(() => status = val);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty) {
+                  _addTask(Task(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    title: titleController.text,
+                    status: status,
+                    startDate: startDate,
+                    endDate: endDate,
+                    progress: status == TaskStatus.completed ? 1.0 : (status == TaskStatus.inProgress ? 0.5 : 0.0),
+                  ));
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Add Task"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with Time and Calendar
-              const HeaderWidget(),
-              const SizedBox(height: 30),
-
-              // Analytics Section
-              const Text(
-                "Project Analytics",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              AnalyticsWidget(tasks: tasks),
-              const SizedBox(height: 30),
-
-              // Gantt Chart Section
-              const Text(
-                "Timeline (Gantt Chart)",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 15),
-              GanttChartWidget(tasks: tasks),
-              
-              const SizedBox(height: 30),
-              
-              // Recent Tasks List
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header with Time and Calendar
+                  const HeaderWidget(),
+                  const SizedBox(height: 30),
+
+                  // Analytics Section
                   const Text(
-                    "Recent Tasks",
+                    "Project Analytics",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  TextButton(
-                    onPressed: () {}, 
-                    child: const Text("View All")
+                  const SizedBox(height: 15),
+                  AnalyticsWidget(tasks: tasks),
+                  const SizedBox(height: 30),
+
+                  // Gantt Chart Section
+                  const Text(
+                    "Timeline (Gantt Chart)",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 15),
+                  GanttChartWidget(tasks: tasks),
+                  
+                  const SizedBox(height: 30),
+                  
+                  // Recent Tasks List
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Recent Tasks",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      TextButton(
+                        onPressed: () {}, 
+                        child: const Text("View All")
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _buildTaskList(),
                 ],
               ),
-              const SizedBox(height: 10),
-              _buildTaskList(),
-            ],
+            ),
           ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: _showAddTaskDialog,
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
       ),

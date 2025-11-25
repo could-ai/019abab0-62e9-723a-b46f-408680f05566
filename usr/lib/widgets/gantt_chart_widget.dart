@@ -9,9 +9,33 @@ class GanttChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine timeline range
+    if (tasks.isEmpty) {
+      return Container(
+        height: 250,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        alignment: Alignment.center,
+        child: const Text("No tasks scheduled", style: TextStyle(color: Colors.grey)),
+      );
+    }
+
+    // Determine timeline range dynamically based on tasks
     DateTime minDate = DateTime.now().subtract(const Duration(days: 2));
     DateTime maxDate = DateTime.now().add(const Duration(days: 10));
+
+    if (tasks.isNotEmpty) {
+      final taskMin = tasks.map((e) => e.startDate).reduce((a, b) => a.isBefore(b) ? a : b);
+      final taskMax = tasks.map((e) => e.endDate).reduce((a, b) => a.isAfter(b) ? a : b);
+      
+      if (taskMin.isBefore(minDate)) minDate = taskMin.subtract(const Duration(days: 1));
+      if (taskMax.isAfter(maxDate)) maxDate = taskMax.add(const Duration(days: 1));
+    }
+
+    // Ensure we don't have a massive range if tasks are far apart, maybe cap it or just let it scroll
+    // For this demo, we'll let it expand but add a buffer
+    
     int totalDays = maxDate.difference(minDate).inDays + 1;
     double dayWidth = 50.0;
 
@@ -76,11 +100,12 @@ class GanttChartWidget extends StatelessWidget {
                       int startOffset = task.startDate.difference(minDate).inDays;
                       int duration = task.endDate.difference(task.startDate).inDays + 1;
                       
-                      // Clamp values to ensure they render within bounds if dates are weird
+                      // Clamp values
                       if (startOffset < 0) {
                         duration += startOffset;
                         startOffset = 0;
                       }
+                      if (duration < 1) duration = 1;
                       
                       return Container(
                         height: 40,
@@ -106,28 +131,31 @@ class GanttChartWidget extends StatelessWidget {
                               width: (duration * dayWidth).toDouble(),
                               top: 8,
                               bottom: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(task.status),
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _getStatusColor(task.status).withOpacity(0.3),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ],
-                                ),
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  task.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                              child: Tooltip(
+                                message: "${task.title}\n${DateFormat('MMM d').format(task.startDate)} - ${DateFormat('MMM d').format(task.endDate)}",
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  decoration: BoxDecoration(
+                                    color: _getStatusColor(task.status),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: _getStatusColor(task.status).withOpacity(0.3),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      )
+                                    ],
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    task.title,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
