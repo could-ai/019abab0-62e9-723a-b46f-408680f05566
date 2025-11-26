@@ -49,9 +49,9 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                const Text(
                   "Hello, User",
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -76,52 +76,6 @@ class _HeaderWidgetState extends State<HeaderWidget> {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 20),
-        // Horizontal Calendar Strip
-        SizedBox(
-          height: 80,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 14, // Show next 2 weeks
-            itemBuilder: (context, index) {
-              final date = DateTime.now().add(Duration(days: index));
-              final isToday = index == 0;
-              
-              return Container(
-                width: 60,
-                margin: const EdgeInsets.only(right: 12),
-                decoration: BoxDecoration(
-                  color: isToday 
-                      ? Theme.of(context).primaryColor 
-                      : Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: isToday ? null : Border.all(color: Colors.white10),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      DateFormat('d').format(date),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: isToday ? Colors.white : Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      DateFormat('E').format(date),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isToday ? Colors.white.withOpacity(0.8) : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
         ),
       ],
     );

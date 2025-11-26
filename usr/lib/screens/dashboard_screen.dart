@@ -64,6 +64,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  void _advanceTaskStatus(Task task) {
+    setState(() {
+      int index = tasks.indexWhere((t) => t.id == task.id);
+      if (index != -1) {
+        Task currentTask = tasks[index];
+        TaskStatus newStatus = currentTask.status;
+        double newProgress = currentTask.progress;
+
+        if (currentTask.status == TaskStatus.todo) {
+          newStatus = TaskStatus.inProgress;
+          newProgress = 0.5; // Set to 50% when moving to in progress
+        } else if (currentTask.status == TaskStatus.inProgress) {
+          newStatus = TaskStatus.completed;
+          newProgress = 1.0; // Set to 100% when completed
+        }
+
+        tasks[index] = Task(
+          id: currentTask.id,
+          title: currentTask.title,
+          status: newStatus,
+          startDate: currentTask.startDate,
+          endDate: currentTask.endDate,
+          progress: newProgress,
+        );
+      }
+    });
+  }
+
   void _showAddTaskDialog() {
     final titleController = TextEditingController();
     DateTime startDate = DateTime.now();
@@ -179,8 +207,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header with Time and Calendar
+                  // Header with Time
                   const HeaderWidget(),
+                  const SizedBox(height: 30),
+
+                  // Add New Task Button (Dashboard Item)
+                  InkWell(
+                    onTap: _showAddTaskDialog,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.8),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).primaryColor.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.add_circle_outline, color: Colors.white, size: 30),
+                          SizedBox(width: 12),
+                          Text(
+                            "Add New Task",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 30),
 
                   // Analytics Section
@@ -224,11 +296,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskDialog,
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
     );
   }
 
@@ -244,18 +311,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: Theme.of(context).colorScheme.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: _getStatusColor(task.status).withOpacity(0.2),
-              child: Icon(
-                _getStatusIcon(task.status),
-                color: _getStatusColor(task.status),
-                size: 20,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: InkWell(
+              onTap: () => _advanceTaskStatus(task),
+              borderRadius: BorderRadius.circular(30),
+              child: CircleAvatar(
+                backgroundColor: _getStatusColor(task.status).withOpacity(0.2),
+                child: Icon(
+                  _getStatusIcon(task.status),
+                  color: _getStatusColor(task.status),
+                  size: 20,
+                ),
               ),
             ),
             title: Text(task.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text(
-              "${DateFormat('MMM d').format(task.startDate)} - ${DateFormat('MMM d').format(task.endDate)}",
-              style: TextStyle(color: Colors.grey[400], fontSize: 12),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 4),
+                Text(
+                  "${DateFormat('MMM d').format(task.startDate)} - ${DateFormat('MMM d').format(task.endDate)}",
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                ),
+                if (task.status != TaskStatus.completed)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      "Tap icon to mark as ${_getNextStatusText(task.status)}",
+                      style: TextStyle(color: Theme.of(context).primaryColor, fontSize: 10),
+                    ),
+                  ),
+              ],
             ),
             trailing: SizedBox(
               width: 60,
@@ -282,6 +368,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
+  }
+
+  String _getNextStatusText(TaskStatus status) {
+    switch (status) {
+      case TaskStatus.todo: return "In Progress";
+      case TaskStatus.inProgress: return "Completed";
+      case TaskStatus.completed: return "Done";
+    }
   }
 
   Color _getStatusColor(TaskStatus status) {
