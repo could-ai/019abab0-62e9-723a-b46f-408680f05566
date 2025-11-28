@@ -9,6 +9,8 @@ class GanttChartWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
     if (tasks.isEmpty) {
       return Container(
         height: 250,
@@ -33,14 +35,11 @@ class GanttChartWidget extends StatelessWidget {
       if (taskMax.isAfter(maxDate)) maxDate = taskMax.add(const Duration(days: 1));
     }
 
-    // Ensure we don't have a massive range if tasks are far apart, maybe cap it or just let it scroll
-    // For this demo, we'll let it expand but add a buffer
-    
     int totalDays = maxDate.difference(minDate).inDays + 1;
-    double dayWidth = 50.0;
+    double dayWidth = isMobile ? 40.0 : 50.0;
 
     return Container(
-      height: 250,
+      height: isMobile ? 200 : 250,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
@@ -49,7 +48,7 @@ class GanttChartWidget extends StatelessWidget {
         children: [
           // Dates Header
           SizedBox(
-            height: 50,
+            height: isMobile ? 40 : 50,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const ClampingScrollPhysics(),
@@ -70,11 +69,17 @@ class GanttChartWidget extends StatelessWidget {
                       children: [
                         Text(
                           DateFormat('d').format(date),
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: isMobile ? 10 : 12,
+                          ),
                         ),
                         Text(
                           DateFormat('E').format(date).substring(0, 1),
-                          style: TextStyle(color: Colors.grey[500], fontSize: 10),
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: isMobile ? 8 : 10,
+                          ),
                         ),
                       ],
                     ),
@@ -108,8 +113,8 @@ class GanttChartWidget extends StatelessWidget {
                       if (duration < 1) duration = 1;
                       
                       return Container(
-                        height: 40,
-                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        height: isMobile ? 32 : 40,
+                        margin: EdgeInsets.symmetric(vertical: isMobile ? 2 : 4),
                         child: Stack(
                           children: [
                             // Grid lines background
@@ -129,15 +134,15 @@ class GanttChartWidget extends StatelessWidget {
                             Positioned(
                               left: startOffset * dayWidth,
                               width: (duration * dayWidth).toDouble(),
-                              top: 8,
-                              bottom: 8,
+                              top: isMobile ? 6 : 8,
+                              bottom: isMobile ? 6 : 8,
                               child: Tooltip(
                                 message: "${task.title}\n${DateFormat('MMM d').format(task.startDate)} - ${DateFormat('MMM d').format(task.endDate)}",
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: isMobile ? 6 : 8),
                                   decoration: BoxDecoration(
                                     color: _getStatusColor(task.status),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(isMobile ? 10 : 12),
                                     boxShadow: [
                                       BoxShadow(
                                         color: _getStatusColor(task.status).withOpacity(0.3),
@@ -151,9 +156,9 @@ class GanttChartWidget extends StatelessWidget {
                                     task.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: 10,
+                                      fontSize: isMobile ? 9 : 10,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

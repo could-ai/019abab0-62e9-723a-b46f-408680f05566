@@ -117,6 +117,8 @@ class _HeaderWidgetState extends State<HeaderWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
     return ListenableBuilder(
       listenable: TaskService(),
       builder: (context, child) {
@@ -126,29 +128,33 @@ class _HeaderWidgetState extends State<HeaderWidget> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      DateFormat('EEEE, d MMMM').format(_currentTime),
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat('EEEE, d MMMM').format(_currentTime),
+                        style: TextStyle(
+                          color: Colors.grey[400],
+                          fontSize: isMobile ? 12 : 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      "Hello, User",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 4),
+                      Text(
+                        "Hello, User",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: isMobile ? 20 : 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Row(
                   children: [
                     // Notification Bell
@@ -156,7 +162,11 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                       children: [
                         IconButton(
                           onPressed: _showNotifications,
-                          icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
+                          icon: Icon(
+                            Icons.notifications_outlined,
+                            color: Colors.white,
+                            size: isMobile ? 24 : 28,
+                          ),
                         ),
                         if (notificationCount > 0)
                           Positioned(
@@ -185,10 +195,13 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                           ),
                       ],
                     ),
-                    const SizedBox(width: 10),
+                    SizedBox(width: isMobile ? 4 : 10),
                     // Time Display
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 12 : 16,
+                        vertical: isMobile ? 6 : 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
@@ -196,9 +209,9 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                       ),
                       child: Text(
                         DateFormat('h:mm a').format(_currentTime),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: isMobile ? 14 : 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

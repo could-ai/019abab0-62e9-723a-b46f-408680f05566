@@ -30,84 +30,98 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: Theme.of(context).colorScheme.surface,
           title: const Text("Add New Task"),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  decoration: const InputDecoration(
-                    labelText: "Task Title",
-                    border: OutlineInputBorder(),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width > 600 ? 400 : MediaQuery.of(context).size.width * 0.9,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: "Task Title",
+                      border: OutlineInputBorder(),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: "Description",
-                    border: OutlineInputBorder(),
-                    hintText: "Add notes or details about this task...",
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: "Description",
+                      border: OutlineInputBorder(),
+                      hintText: "Add notes or details about this task...",
+                    ),
+                    maxLines: 3,
                   ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                ListTile(
-                  title: const Text("Start Date"),
-                  subtitle: Text(DateFormat('MMM d, y').format(startDate)),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: startDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) {
-                      setDialogState(() => startDate = picked);
-                    }
-                  },
-                ),
-                ListTile(
-                  title: const Text("End Date"),
-                  subtitle: Text(DateFormat('MMM d, y').format(endDate)),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: endDate,
-                      firstDate: startDate,
-                      lastDate: DateTime(2030),
-                    );
-                    if (picked != null) {
-                      setDialogState(() => endDate = picked);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<TaskStatus>(
-                  value: status,
-                  decoration: const InputDecoration(
-                    labelText: "Status",
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: startDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => startDate = picked);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: "Start Date",
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      child: Text(DateFormat('MMM d, y').format(startDate)),
+                    ),
                   ),
-                  items: TaskStatus.values.map((s) {
-                    return DropdownMenuItem(
-                      value: s,
-                      child: Text(Task(
-                        id: '',
-                        title: '',
-                        status: s,
-                        startDate: DateTime.now(),
-                        endDate: DateTime.now(),
-                        progress: 0,
-                      ).statusLabel),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) setDialogState(() => status = val);
-                  },
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: endDate,
+                        firstDate: startDate,
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setDialogState(() => endDate = picked);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: "End Date",
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      child: Text(DateFormat('MMM d, y').format(endDate)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<TaskStatus>(
+                    value: status,
+                    decoration: const InputDecoration(
+                      labelText: "Status",
+                      border: OutlineInputBorder(),
+                    ),
+                    items: TaskStatus.values.map((s) {
+                      return DropdownMenuItem(
+                        value: s,
+                        child: Text(Task(
+                          id: '',
+                          title: '',
+                          status: s,
+                          startDate: DateTime.now(),
+                          endDate: DateTime.now(),
+                          progress: 0,
+                        ).statusLabel),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) setDialogState(() => status = val);
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -140,17 +154,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
     return Scaffold(
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: const BoxConstraints(maxWidth: 1200),
             child: ListenableBuilder(
               listenable: _taskService,
               builder: (context, child) {
                 final tasks = _taskService.tasks;
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(isMobile ? 16.0 : 20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -164,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(20),
+                          padding: EdgeInsets.all(isMobile ? 16 : 20),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
@@ -183,16 +199,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.add_circle_outline, color: Colors.white, size: 30),
-                              SizedBox(width: 12),
+                              Icon(Icons.add_circle_outline, color: Colors.white, size: isMobile ? 24 : 30),
+                              SizedBox(width: isMobile ? 8 : 12),
                               Text(
                                 "Add New Task",
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 18,
+                                  fontSize: isMobile ? 16 : 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -203,18 +219,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 30),
 
                       // Analytics Section
-                      const Text(
+                      Text(
                         "Project Analytics",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: isMobile ? 18 : 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 15),
                       AnalyticsWidget(tasks: tasks),
                       const SizedBox(height: 30),
 
                       // Gantt Chart Section
-                      const Text(
+                      Text(
                         "Timeline (Gantt Chart)",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: isMobile ? 18 : 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 15),
                       GanttChartWidget(tasks: tasks),
@@ -231,7 +253,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           icon: const Icon(Icons.list),
                           label: const Text("View All Tasks"),
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: EdgeInsets.symmetric(vertical: isMobile ? 14 : 16),
                             backgroundColor: Theme.of(context).colorScheme.surface,
                             foregroundColor: Colors.white,
                           ),

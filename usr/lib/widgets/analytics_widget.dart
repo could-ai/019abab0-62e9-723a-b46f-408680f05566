@@ -9,66 +9,115 @@ class AnalyticsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
     final completed = tasks.where((t) => t.status == TaskStatus.completed).length;
     final inProgress = tasks.where((t) => t.status == TaskStatus.inProgress).length;
     final todo = tasks.where((t) => t.status == TaskStatus.todo).length;
     final total = tasks.length;
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
-        children: [
-          // Pie Chart
-          SizedBox(
-            height: 120,
-            width: 120,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 0,
-                centerSpaceRadius: 30,
-                sections: [
-                  PieChartSectionData(
-                    color: Colors.greenAccent,
-                    value: completed.toDouble(),
-                    title: '',
-                    radius: 15,
-                  ),
-                  PieChartSectionData(
-                    color: Colors.blueAccent,
-                    value: inProgress.toDouble(),
-                    title: '',
-                    radius: 15,
-                  ),
-                  PieChartSectionData(
-                    color: Colors.orangeAccent,
-                    value: todo.toDouble(),
-                    title: '',
-                    radius: 15,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 20),
-          // Stats
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: isMobile
+          ? Column(
               children: [
-                _buildStatRow("Completed", completed, total, Colors.greenAccent),
-                const SizedBox(height: 10),
-                _buildStatRow("In Progress", inProgress, total, Colors.blueAccent),
-                const SizedBox(height: 10),
-                _buildStatRow("To Do", todo, total, Colors.orangeAccent),
+                // Pie Chart
+                SizedBox(
+                  height: 120,
+                  width: 120,
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 0,
+                      centerSpaceRadius: 30,
+                      sections: [
+                        PieChartSectionData(
+                          color: Colors.greenAccent,
+                          value: completed.toDouble(),
+                          title: '',
+                          radius: 15,
+                        ),
+                        PieChartSectionData(
+                          color: Colors.blueAccent,
+                          value: inProgress.toDouble(),
+                          title: '',
+                          radius: 15,
+                        ),
+                        PieChartSectionData(
+                          color: Colors.orangeAccent,
+                          value: todo.toDouble(),
+                          title: '',
+                          radius: 15,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Stats
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStatRow("Completed", completed, total, Colors.greenAccent),
+                    const SizedBox(height: 10),
+                    _buildStatRow("In Progress", inProgress, total, Colors.blueAccent),
+                    const SizedBox(height: 10),
+                    _buildStatRow("To Do", todo, total, Colors.orangeAccent),
+                  ],
+                ),
+              ],
+            )
+          : Row(
+              children: [
+                // Pie Chart
+                SizedBox(
+                  height: 120,
+                  width: 120,
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 0,
+                      centerSpaceRadius: 30,
+                      sections: [
+                        PieChartSectionData(
+                          color: Colors.greenAccent,
+                          value: completed.toDouble(),
+                          title: '',
+                          radius: 15,
+                        ),
+                        PieChartSectionData(
+                          color: Colors.blueAccent,
+                          value: inProgress.toDouble(),
+                          title: '',
+                          radius: 15,
+                        ),
+                        PieChartSectionData(
+                          color: Colors.orangeAccent,
+                          value: todo.toDouble(),
+                          title: '',
+                          radius: 15,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 20),
+                // Stats
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatRow("Completed", completed, total, Colors.greenAccent),
+                      const SizedBox(height: 10),
+                      _buildStatRow("In Progress", inProgress, total, Colors.blueAccent),
+                      const SizedBox(height: 10),
+                      _buildStatRow("To Do", todo, total, Colors.orangeAccent),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
