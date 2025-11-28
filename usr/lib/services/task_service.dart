@@ -10,6 +10,7 @@ class TaskService extends ChangeNotifier {
     Task(
       id: '1',
       title: 'UI Design',
+      description: 'Design the user interface mockups and prototypes',
       status: TaskStatus.completed,
       startDate: DateTime.now().subtract(const Duration(days: 2)),
       endDate: DateTime.now().add(const Duration(days: 1)),
@@ -18,6 +19,7 @@ class TaskService extends ChangeNotifier {
     Task(
       id: '2',
       title: 'Backend API',
+      description: 'Develop RESTful API endpoints',
       status: TaskStatus.inProgress,
       startDate: DateTime.now(),
       endDate: DateTime.now().add(const Duration(days: 4)),
@@ -26,6 +28,7 @@ class TaskService extends ChangeNotifier {
     Task(
       id: '3',
       title: 'Database Setup',
+      description: 'Configure database schema and migrations',
       status: TaskStatus.inProgress,
       startDate: DateTime.now().add(const Duration(days: 1)),
       endDate: DateTime.now().add(const Duration(days: 3)),
@@ -34,6 +37,7 @@ class TaskService extends ChangeNotifier {
     Task(
       id: '4',
       title: 'Testing',
+      description: 'Write unit and integration tests',
       status: TaskStatus.todo,
       startDate: DateTime.now().add(const Duration(days: 4)),
       endDate: DateTime.now().add(const Duration(days: 7)),
@@ -42,15 +46,16 @@ class TaskService extends ChangeNotifier {
     Task(
       id: '5',
       title: 'Deployment',
+      description: 'Deploy to production environment',
       status: TaskStatus.todo,
       startDate: DateTime.now().add(const Duration(days: 6)),
       endDate: DateTime.now().add(const Duration(days: 8)),
       progress: 0.0,
     ),
-    // Add a task nearing deadline for demo
     Task(
       id: '6',
       title: 'Client Presentation',
+      description: 'Present project progress to stakeholders',
       status: TaskStatus.todo,
       startDate: DateTime.now(),
       endDate: DateTime.now().add(const Duration(hours: 24)),
@@ -73,6 +78,11 @@ class TaskService extends ChangeNotifier {
     }
   }
 
+  void deleteTask(String taskId) {
+    _tasks.removeWhere((task) => task.id == taskId);
+    notifyListeners();
+  }
+
   void advanceTaskStatus(Task task) {
     int index = _tasks.indexWhere((t) => t.id == task.id);
     if (index != -1) {
@@ -91,6 +101,7 @@ class TaskService extends ChangeNotifier {
       _tasks[index] = Task(
         id: currentTask.id,
         title: currentTask.title,
+        description: currentTask.description,
         status: newStatus,
         startDate: currentTask.startDate,
         endDate: currentTask.endDate,

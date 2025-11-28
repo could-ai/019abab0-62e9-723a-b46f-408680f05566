@@ -39,43 +39,67 @@ class _HeaderWidgetState extends State<HeaderWidget> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.notifications, color: Colors.white),
-            const SizedBox(width: 10),
-            const Text("Reminders"),
+            Icon(Icons.notifications, color: Colors.white),
+            SizedBox(width: 10),
+            Text("Reminders"),
           ],
         ),
         content: SizedBox(
-          width: double.maxFinite,
+          width: 350,
           child: nearingTasks.isEmpty 
             ? const Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Text("No upcoming deadlines."),
               )
-            : ListView.builder(
+            : ListView.separated(
                 shrinkWrap: true,
                 itemCount: nearingTasks.length,
+                separatorBuilder: (context, index) => const Divider(),
                 itemBuilder: (context, index) {
                   final task = nearingTasks[index];
                   final daysLeft = task.endDate.difference(DateTime.now()).inDays;
                   final hoursLeft = task.endDate.difference(DateTime.now()).inHours;
                   
                   String timeLeftStr;
+                  Color urgencyColor;
                   if (daysLeft > 0) {
                     timeLeftStr = "$daysLeft days left";
+                    urgencyColor = Colors.orangeAccent;
                   } else if (hoursLeft > 0) {
                     timeLeftStr = "$hoursLeft hours left";
+                    urgencyColor = Colors.redAccent;
                   } else {
                     timeLeftStr = "Due soon";
+                    urgencyColor = Colors.redAccent;
                   }
 
                   return ListTile(
-                    leading: const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent),
-                    title: Text(task.title),
-                    subtitle: Text(
-                      "Deadline: ${DateFormat('MMM d').format(task.endDate)} ($timeLeftStr)",
-                      style: const TextStyle(color: Colors.grey),
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.warning_amber_rounded, color: urgencyColor),
+                    title: Text(
+                      task.title,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 4),
+                        Text(
+                          "Deadline: ${DateFormat('MMM d, h:mm a').format(task.endDate)}",
+                          style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          timeLeftStr,
+                          style: TextStyle(
+                            color: urgencyColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },

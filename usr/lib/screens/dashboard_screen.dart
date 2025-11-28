@@ -18,6 +18,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _showAddTaskDialog() {
     final titleController = TextEditingController();
+    final descriptionController = TextEditingController();
     DateTime startDate = DateTime.now();
     DateTime endDate = DateTime.now().add(const Duration(days: 1));
     TaskStatus status = TaskStatus.todo;
@@ -38,6 +39,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     labelText: "Task Title",
                     border: OutlineInputBorder(),
                   ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: "Description",
+                    border: OutlineInputBorder(),
+                    hintText: "Add notes or details about this task...",
+                  ),
+                  maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 ListTile(
@@ -82,7 +93,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   items: TaskStatus.values.map((s) {
                     return DropdownMenuItem(
                       value: s,
-                      child: Text(s.toString().split('.').last.toUpperCase()),
+                      child: Text(Task(
+                        id: '',
+                        title: '',
+                        status: s,
+                        startDate: DateTime.now(),
+                        endDate: DateTime.now(),
+                        progress: 0,
+                      ).statusLabel),
                     );
                   }).toList(),
                   onChanged: (val) {
@@ -103,6 +121,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _taskService.addTask(Task(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
                     title: titleController.text,
+                    description: descriptionController.text,
                     status: status,
                     startDate: startDate,
                     endDate: endDate,

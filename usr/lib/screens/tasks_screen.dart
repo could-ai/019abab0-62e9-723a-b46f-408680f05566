@@ -58,6 +58,16 @@ class TasksScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
+            if (task.description.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4.0),
+                child: Text(
+                  task.description,
+                  style: TextStyle(color: Colors.grey[300], fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             Text(
               "${DateFormat('MMM d').format(task.startDate)} - ${DateFormat('MMM d').format(task.endDate)}",
               style: TextStyle(color: Colors.grey[400], fontSize: 12),
@@ -72,35 +82,220 @@ class TasksScreen extends StatelessWidget {
               ),
           ],
         ),
-        trailing: SizedBox(
-          width: 60,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "${(task.progress * 100).toInt()}%",
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 60,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "${(task.progress * 100).toInt()}%",
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  LinearProgressIndicator(
+                    value: task.progress,
+                    backgroundColor: Colors.grey[800],
+                    color: _getStatusColor(task.status),
+                    minHeight: 4,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              LinearProgressIndicator(
-                value: task.progress,
-                backgroundColor: Colors.grey[800],
-                color: _getStatusColor(task.status),
-                minHeight: 4,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ],
-          ),
+            ),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                if (value == 'edit') {
+                  _showEditTaskDialog(context, task);
+                } else if (value == 'delete') {
+                  _showDeleteConfirmation(context, task);
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 20),
+                      SizedBox(width: 8),
+                      Text('Edit'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, size: 20, color: Colors.redAccent),
+                      SizedBox(width: 8),
+                      Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  void _showEditTaskDialog(BuildContext context, Task task) {
+    final titleController = TextEditingController(text: task.title);
+    final descriptionController = TextEditingController(text: task.description);
+    DateTime startDate = task.startDate;
+    DateTime endDate = task.endDate;
+    TaskStatus status = task.status;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: const Text("Edit Task"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: titleController,
+                  decoration: const InputDecoration(
+                    labelText: "Task Title",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: "Description",
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                ListTile(
+                  title: const Text("Start Date"),
+                  subtitle: Text(DateFormat('MMM d, y').format(startDate)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: startDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      setDialogState(() => startDate = picked);
+                    }
+                  },
+                ),
+                ListTile(
+                  title: const Text("End Date"),
+                  subtitle: Text(DateFormat('MMM d, y').format(endDate)),
+                  trailing: const Icon(Icons.calendar_today),
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: endDate,
+                      firstDate: startDate,
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      setDialogState(() => endDate = picked);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<TaskStatus>(
+                  value: status,
+                  decoration: const InputDecoration(
+                    labelText: "Status",
+                    border: OutlineInputBorder(),
+                  ),
+                  items: TaskStatus.values.map((s) {
+                    return DropdownMenuItem(
+                      value: s,
+                      child: Text(Task(
+                        id: '',
+                        title: '',
+                        status: s,
+                        startDate: DateTime.now(),
+                        endDate: DateTime.now(),
+                        progress: 0,
+                      ).statusLabel),
+                    );
+                  }).toList(),
+                  onChanged: (val) {
+                    if (val != null) setDialogState(() => status = val);
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty) {
+                  TaskService().updateTask(Task(
+                    id: task.id,
+                    title: titleController.text,
+                    description: descriptionController.text,
+                    status: status,
+                    startDate: startDate,
+                    endDate: endDate,
+                    progress: status == TaskStatus.completed ? 1.0 : (status == TaskStatus.inProgress ? 0.5 : 0.0),
+                  ));
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Save Changes"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, Task task) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: const Text("Delete Task"),
+        content: Text("Are you sure you want to delete '${task.title}'?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              TaskService().deleteTask(task.id);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+            ),
+            child: const Text("Delete"),
+          ),
+        ],
       ),
     );
   }
 
   String _getNextStatusText(TaskStatus status) {
     switch (status) {
-      case TaskStatus.todo: return "In Progress";
-      case TaskStatus.inProgress: return "Completed";
+      case TaskStatus.todo: return "IN PROGRESS";
+      case TaskStatus.inProgress: return "COMPLETED";
       case TaskStatus.completed: return "Done";
     }
   }
